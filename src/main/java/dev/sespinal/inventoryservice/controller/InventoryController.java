@@ -5,6 +5,7 @@ import dev.sespinal.inventoryservice.dto.InventoryItemResponse;
 import dev.sespinal.inventoryservice.service.InventoryService;
 import jakarta.validation.Valid;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/inventory")
+@RequiredArgsConstructor
 public class InventoryController {
 
   private static final Logger log = LoggerFactory.getLogger(InventoryController.class);
@@ -26,18 +28,20 @@ public class InventoryController {
   private final InventoryService inventoryService;
 
   // Constructor injection
-  public InventoryController(InventoryService inventoryService) {
-    this.inventoryService = inventoryService;
-  }
+//  public InventoryController(InventoryService inventoryService) {
+//    this.inventoryService = inventoryService;
+//  }
 
   /**
    * POST /api/inventory - Crear item de inventario
    */
   @PostMapping
-  public ResponseEntity<InventoryItemResponse> createInventoryItem(@Valid @RequestBody InventoryItemRequest request) {
+  public ResponseEntity<InventoryItemResponse> createInventoryItem(
+      @Valid @RequestBody InventoryItemRequest request) {
     log.info("POST /api/inventory - Creating inventory item: {}", request);
     InventoryItemResponse response = inventoryService.createInventoryItem(request);
-    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    //return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    return new ResponseEntity<>(response, HttpStatus.CREATED);
   }
 
   /**

@@ -9,7 +9,13 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "inventory_items")
 public class InventoryItem {
@@ -24,11 +30,15 @@ public class InventoryItem {
   @Column(nullable = false)
   private String productName;
 
-  @Column(nullable = false)
+  //@Column(nullable = false)
   private Integer availableStock;
 
-  @Column(nullable = false)
+  //@Column(nullable = false)
   private Integer reservedStock;
+
+  //@Column(nullable = false)
+  private Integer totalStock;
+
 
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
@@ -48,16 +58,17 @@ public class InventoryItem {
   }
 
   // Constructor vacío (requerido por JPA)
-  public InventoryItem() {
-  }
+//  public InventoryItem() {
+//  }
 
   // Constructor completo
-  public InventoryItem(Long productId, String productName, Integer initialStock) {
-    this.productId = productId;
-    this.productName = productName;
-    this.availableStock = initialStock;
-    this.reservedStock = 0;
-  }
+//  public InventoryItem(Long productId, String productName, Integer initialStock) {
+//    this.productId = productId;
+//    this.productName = productName;
+//    this.availableStock = initialStock;
+//    this.reservedStock = 0;
+//    this.totalStock = initialStock;
+//  }
 
   // Métodos de negocio
 
@@ -73,11 +84,7 @@ public class InventoryItem {
    * NO persiste automáticamente, debe llamar repository.save()
    */
   public void reserveStock(Integer quantity) {
-    if (!hasAvailableStock(quantity)) {
-      throw new IllegalStateException(
-          "Insufficient available stock. Available: " + availableStock + ", Requested: " + quantity
-      );
-    }
+    if (!hasAvailableStock(quantity)) throw new IllegalStateException("Insufficient stock");
     this.availableStock -= quantity;
     this.reservedStock += quantity;
   }
@@ -87,11 +94,7 @@ public class InventoryItem {
    * Usado cuando una orden se cancela
    */
   public void releaseStock(Integer quantity) {
-    if (this.reservedStock < quantity) {
-      throw new IllegalStateException(
-          "Cannot release more than reserved. Reserved: " + reservedStock + ", Requested: " + quantity
-      );
-    }
+    if (this.reservedStock < quantity) throw new IllegalStateException("Cannot release");
     this.reservedStock -= quantity;
     this.availableStock += quantity;
   }
@@ -103,63 +106,6 @@ public class InventoryItem {
     return this.availableStock + this.reservedStock;
   }
 
-  // Getters y Setters
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public Long getProductId() {
-    return productId;
-  }
-
-  public void setProductId(Long productId) {
-    this.productId = productId;
-  }
-
-  public String getProductName() {
-    return productName;
-  }
-
-  public void setProductName(String productName) {
-    this.productName = productName;
-  }
-
-  public Integer getAvailableStock() {
-    return availableStock;
-  }
-
-  public void setAvailableStock(Integer availableStock) {
-    this.availableStock = availableStock;
-  }
-
-  public Integer getReservedStock() {
-    return reservedStock;
-  }
-
-  public void setReservedStock(Integer reservedStock) {
-    this.reservedStock = reservedStock;
-  }
-
-  public Instant getCreatedAt() {
-    return createdAt;
-  }
-
-  public void setCreatedAt(Instant createdAt) {
-    this.createdAt = createdAt;
-  }
-
-  public Instant getUpdatedAt() {
-    return updatedAt;
-  }
-
-  public void setUpdatedAt(Instant updatedAt) {
-    this.updatedAt = updatedAt;
-  }
 
   @Override
   public String toString() {

@@ -3,34 +3,19 @@ package dev.sespinal.inventoryservice.mapper;
 import dev.sespinal.inventoryservice.dto.InventoryItemRequest;
 import dev.sespinal.inventoryservice.dto.InventoryItemResponse;
 import dev.sespinal.inventoryservice.model.entity.InventoryItem;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
+//import org.springframework.web.bind.annotation.Mapping;
 
-public final class InventoryMapper {
+@Mapper(componentModel = "spring")
+public interface InventoryMapper {
 
-  private InventoryMapper() {
-    throw new AssertionError("Utility class, no debe instanciarse");
-  }
+  @Mapping(target = "availableStock", source = "initialStock") // inicializamos con el stock del request
+  @Mapping(target = "reservedStock", constant = "0")           // siempre empieza en 0
+  @Mapping(target = "totalStock", source = "initialStock")    // totalStock = initialStock al crear
+  InventoryItem toEntity(InventoryItemRequest request);
 
-  public static InventoryItemResponse toResponse(InventoryItem inventoryItem) {
-
-    return new InventoryItemResponse(
-        inventoryItem.getId(),
-        inventoryItem.getProductId(),
-        inventoryItem.getProductName(),
-        inventoryItem.getAvailableStock(),
-        inventoryItem.getReservedStock(),
-        inventoryItem.getTotalStock(),
-        inventoryItem.getCreatedAt(),
-        inventoryItem.getUpdatedAt()
-    );
-  }
-
-  public static InventoryItem toEntity(InventoryItemRequest request, InventoryItem entity) {
-
-    entity.setProductId(request.getProductId());
-    entity.setProductName(request.getProductName());
-    entity.setAvailableStock(request.getInitialStock());
-
-    return entity;
-  }
-
+  // Mapear InventoryItem -> InventoryItemResponse
+  InventoryItemResponse toResponse(InventoryItem item);
 }

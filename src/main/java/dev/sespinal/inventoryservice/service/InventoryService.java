@@ -7,15 +7,18 @@ import dev.sespinal.inventoryservice.kafka.event.OrderCancelledEvent;
 import dev.sespinal.inventoryservice.kafka.event.OrderConfirmedEvent;
 import dev.sespinal.inventoryservice.kafka.event.OrderPlacedEvent;
 import dev.sespinal.inventoryservice.kafka.producer.InventoryEventProducer;
+import dev.sespinal.inventoryservice.mapper.InventoryMapper;
 import dev.sespinal.inventoryservice.model.entity.InventoryItem;
 import dev.sespinal.inventoryservice.repository.InventoryRepository;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@RequiredArgsConstructor
 @Service
 public class InventoryService {
 
@@ -23,13 +26,7 @@ public class InventoryService {
 
   private final InventoryRepository inventoryRepository;
   private final InventoryEventProducer eventProducer;
-
-  // Constructor injection
-  public InventoryService(InventoryRepository inventoryRepository,
-      InventoryEventProducer eventProducer) {
-    this.inventoryRepository = inventoryRepository;
-    this.eventProducer = eventProducer;
-  }
+  private final InventoryMapper inventoryMapper;
 
   /**
    * Crear un nuevo item de inventario
@@ -38,22 +35,15 @@ public class InventoryService {
   public InventoryItemResponse createInventoryItem(InventoryItemRequest request) {
     log.info("Creating inventory item for productId: {}", request.getProductId());
 
-    // Verificar que no exista ya un item para este producto
     if (inventoryRepository.existsByProductId(request.getProductId())) {
       throw new RuntimeException(
           "Inventory item already exists for productId: " + request.getProductId());
     }
 
-    InventoryItem item = new InventoryItem(
-        request.getProductId(),
-        request.getProductName(),
-        request.getInitialStock()
-    );
-
+    InventoryItem item = inventoryMapper.toEntity(request);
     InventoryItem saved = inventoryRepository.save(item);
-    log.info("Inventory item created: {}", saved);
 
-    return toResponse(saved);
+    return inventoryMapper.toResponse(saved);
   }
 
   /**
