@@ -3,6 +3,8 @@ package dev.sespinal.inventoryservice.exception;
 import dev.sespinal.inventoryservice.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,4 +66,11 @@ public class GlobalExceptionHandler {
         .body(ErrorResponse.generic("Ocurrió un error inesperado", request.getRequestURI()));
   }
 
-}
+  @ExceptionHandler(ProductNotFoundException.class)
+  public ResponseEntity<Map<String, String>> handleProductNotFound(ProductNotFoundException ex) {
+    Map<String, String> error = new HashMap<>();
+    error.put("message", ex.getMessage());
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+  }
+
+ }

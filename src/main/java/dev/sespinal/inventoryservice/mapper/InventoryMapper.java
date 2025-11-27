@@ -11,11 +11,8 @@ import org.mapstruct.factory.Mappers;
 @Mapper(componentModel = "spring")
 public interface InventoryMapper {
 
-  @Mapping(target = "availableStock", source = "initialStock") // inicializamos con el stock del request
-  @Mapping(target = "reservedStock", constant = "0")           // siempre empieza en 0
-  @Mapping(target = "totalStock", source = "initialStock")    // totalStock = initialStock al crear
-  InventoryItem toEntity(InventoryItemRequest request);
-
-  // Mapear InventoryItem -> InventoryItemResponse
+  @Mapping(target = "totalStock", expression = "java(item.getAvailableStock() + item.getReservedStock())")
   InventoryItemResponse toResponse(InventoryItem item);
+
+  InventoryItem toEntity(InventoryItemRequest request);
 }

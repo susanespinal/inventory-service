@@ -68,7 +68,8 @@ public class InventoryController {
    * GET /api/inventory/product/{productId} - Obtener item por productId
    */
   @GetMapping("/product/{productId}")
-  public ResponseEntity<InventoryItemResponse> getInventoryItemByProductId(@PathVariable Long productId) {
+  public ResponseEntity<InventoryItemResponse> getInventoryItemByProductId(
+      @PathVariable Long productId) {
     log.debug("GET /api/inventory/product/{} - Fetching inventory item", productId);
     InventoryItemResponse response = inventoryService.getInventoryItemByProductId(productId);
     return ResponseEntity.ok(response);
@@ -82,5 +83,13 @@ public class InventoryController {
     log.info("DELETE /api/inventory/{} - Deleting inventory item", id);
     inventoryService.deleteInventoryItem(id);
     return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Verificar si existe producto
+   */
+  @GetMapping("/exists/{productId}")
+  public ResponseEntity<Boolean> exists(@PathVariable Long productId) {
+    return ResponseEntity.ok(inventoryService.productExists(productId));
   }
 }

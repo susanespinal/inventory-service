@@ -1,6 +1,7 @@
 package dev.sespinal.inventoryservice.kafka.consumer;
 
 import dev.sespinal.inventoryservice.kafka.event.OrderPlacedEvent;
+import dev.sespinal.inventoryservice.kafka.producer.InventoryEventProducer;
 import dev.sespinal.inventoryservice.service.InventoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,10 +18,13 @@ public class OrderEventConsumer {
   private static final Logger log = LoggerFactory.getLogger(OrderEventConsumer.class);
 
   private final InventoryService inventoryService;
+  private final InventoryEventProducer verificationService;
 
   // Constructor injection
-  public OrderEventConsumer(InventoryService inventoryService) {
+  public OrderEventConsumer(InventoryService inventoryService,
+      InventoryEventProducer verificationService) {
     this.inventoryService = inventoryService;
+    this.verificationService = verificationService;
   }
 
   /**
@@ -47,5 +51,10 @@ public class OrderEventConsumer {
       // En este lab: Solo logging del error
       // Lab 02: Publicaremos OrderCancelledEvent si falla
     }
+  }
+
+  @KafkaListener(topics = "ecommerce.product.validated", groupId = "product-verification-group")
+  public void listen(OrderPlacedEvent event) {
+    verificationService.verifyProduct(event);
   }
 }

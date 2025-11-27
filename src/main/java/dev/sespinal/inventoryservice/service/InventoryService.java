@@ -2,6 +2,8 @@ package dev.sespinal.inventoryservice.service;
 
 import dev.sespinal.inventoryservice.dto.InventoryItemRequest;
 import dev.sespinal.inventoryservice.dto.InventoryItemResponse;
+import dev.sespinal.inventoryservice.exception.ProductNotFoundException;
+import dev.sespinal.inventoryservice.kafka.consumer.ProductServiceClient;
 import dev.sespinal.inventoryservice.kafka.event.InventoryUpdatedEvent;
 import dev.sespinal.inventoryservice.kafka.event.OrderCancelledEvent;
 import dev.sespinal.inventoryservice.kafka.event.OrderConfirmedEvent;
@@ -11,6 +13,7 @@ import dev.sespinal.inventoryservice.mapper.InventoryMapper;
 import dev.sespinal.inventoryservice.model.entity.InventoryItem;
 import dev.sespinal.inventoryservice.repository.InventoryRepository;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -27,6 +30,7 @@ public class InventoryService {
   private final InventoryRepository inventoryRepository;
   private final InventoryEventProducer eventProducer;
   private final InventoryMapper inventoryMapper;
+  private final ProductServiceClient productServiceClient;
 
   /**
    * Crear un nuevo item de inventario
@@ -34,13 +38,20 @@ public class InventoryService {
   @Transactional
   public InventoryItemResponse createInventoryItem(InventoryItemRequest request) {
     log.info("Creating inventory item for productId: {}", request.getProductId());
+    if (!productServiceClient.existsById(request.getProductId())) {
+      log.warn("Not created inventory item for productId: {}", request.getProductId());
+      throw new ProductNotFoundException(request.getProductId());
 
+    }
     if (inventoryRepository.existsByProductId(request.getProductId())) {
       throw new RuntimeException(
           "Inventory item already exists for productId: " + request.getProductId());
     }
 
     InventoryItem item = inventoryMapper.toEntity(request);
+    item.setAvailableStock(request.getInitialStock());
+    item.setReservedStock(0);
+
     InventoryItem saved = inventoryRepository.save(item);
 
     return inventoryMapper.toResponse(saved);
@@ -177,6 +188,15 @@ public class InventoryService {
       );
       eventProducer.publishOrderCancelled(cancelledEvent);
     }
+  }
+
+  /**
+   * Verificar existencia del Id del producto
+   * @param productId
+   * @return
+   */
+  public boolean productExists(Long productId) {
+    return inventoryRepository.existsByProductId(productId);
   }
 
   /**
